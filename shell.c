@@ -1,77 +1,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/wait.h>
 
 extern char **environ;
 
-static void print_prompt(void)
+/**
+ * main - simple UNIX shell
+ *
+ * Return: Always 0
+ */
+int main(void)
 {
-    if (isatty(STDIN_FILENO))
-        write(STDOUT_FILENO, "#cisfun$ ", 9);
-}
-
-static void print_error(const char *shell_name)
-{
-    dprintf(STDERR_FILENO, "%s: No such file or directory\n", shell_name);
-}
-
-int main(int argc, char **argv)
-{
-    char *line;
-    size_t cap;
+    char *line = NULL;
+    size_t len = 0;
     ssize_t nread;
     pid_t pid;
     int status;
-    char *args[2];
-
-    (void)argc;
-
-    line = NULL;
-    cap = 0;
+    char *argv[100];
+    char *token;
+    int i;
 
     while (1)
     {
-        print_prompt();
-
-        nread = getline(&line, &cap, stdin);
-        if (nread == -1)
+        if (isatty(STDIN_FILENO))
         {
-            if (isatty(STDIN_FILENO))
-                write(STDOUT_FILENO, "\n", 1);
-            break;
+            printf("newshell$ ");
+            fflush(stdout);
         }
 
-        if (nread > 0 && line[nread - 1] == '\n')
+        nread = getline(&line, &len, stdin);
+        if (nread == -1)
+        {
+            free(line);
+            exit(0);
+        }
+
+        if (line[nread - 1] == '\n')
             line[nread - 1] = '\0';
 
-        if (line[0] == '\0')
+        i = 0;
+        token = strtok(line, " \t");
+        while (token != NULL && i < 99)
+        {
+            argv[i++] = token;
+            token = strtok(NULL, " \t");
+        }
+        argv[i] = NULL;
+
+        if (argv[0] == NULL)
             continue;
 
         pid = fork();
-        if (pid == -1)
-        {
-            perror("fork");
-            continue;
-        }
 
         if (pid == 0)
         {
-            args[0] = line;
-            args[1] = NULL;
-
-            execve(args[0], args, environ);
-
-            print_error(argv[0]);
-            _exit(127);
+            if (execve(argv[0], argv, environ) == -1)
+            {
+                fprintf(stderr, "Command not found\n");
+                exit(1);
+            }
         }
         else
         {
-            (void)waitpid(pid, &status, 0);
+            wait(&status);
         }
     }
 
     free(line);
-    return 0;
+    return (0);
 }
+

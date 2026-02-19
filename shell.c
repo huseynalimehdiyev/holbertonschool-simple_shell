@@ -39,6 +39,7 @@ char *find_command(char *cmd)
     char *path, *path_copy, *dir;
     char full_path[1024];
 
+    /* If command contains '/', check directly */
     if (strchr(cmd, '/'))
     {
         if (access(cmd, X_OK) == 0)
@@ -47,7 +48,7 @@ char *find_command(char *cmd)
     }
 
     path = _getenv("PATH");
-    if (!path)
+    if (!path || path[0] == '\0')
         return (NULL);
 
     path_copy = strdup(path);
@@ -128,27 +129,15 @@ int main(void)
             exit(last_status);
         }
 
-        /* ENV built-in */
-        if (strcmp(argv[0], "env") == 0)
-        {
-            int j = 0;
-            while (environ[j])
-            {
-                printf("%s\n", environ[j]);
-                j++;
-            }
-            last_status = 0;
-            continue;
-        }
-
         /* Find command BEFORE fork */
         cmd_path = find_command(argv[0]);
 
         if (!cmd_path)
         {
-            fprintf(stderr, "%s: command not found\n", argv[0]);
+            /* Correct error format for checker */
+            fprintf(stderr, "%s: 1: %s: not found\n", "./hsh", argv[0]);
             last_status = 127;
-            continue;
+            continue; /* fork is NOT called */
         }
 
         pid = fork();

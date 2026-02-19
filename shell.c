@@ -7,7 +7,7 @@
 extern char **environ;
 
 /**
- * find_command - finds command in PATH
+ * find_command - search command in PATH
  * @cmd: command name
  * Return: full path or NULL
  */
@@ -16,7 +16,7 @@ char *find_command(char *cmd)
     char *path, *path_copy, *dir;
     char full_path[1024];
 
-    /* If command contains /, don't search PATH */
+    /* If command contains '/', check directly */
     if (strchr(cmd, '/'))
     {
         if (access(cmd, X_OK) == 0)
@@ -53,6 +53,7 @@ char *find_command(char *cmd)
 
 /**
  * main - simple UNIX shell
+ *
  * Return: Always 0
  */
 int main(void)
@@ -70,11 +71,13 @@ int main(void)
     {
         if (isatty(STDIN_FILENO))
         {
-            printf("newshell$ ");
+            printf(":) ");
             fflush(stdout);
         }
 
         nread = getline(&line, &len, stdin);
+
+        /* Ctrl+D */
         if (nread == -1)
         {
             free(line);
@@ -84,6 +87,7 @@ int main(void)
         if (line[nread - 1] == '\n')
             line[nread - 1] = '\0';
 
+        /* Tokenize (handle arguments) */
         i = 0;
         token = strtok(line, " \t");
 
@@ -97,23 +101,23 @@ int main(void)
         if (argv[0] == NULL)
             continue;
 
-        /* EXIT BUILTIN */
-        if (strcmp(argv[0], "exit") == 0)
-        {
-            free(line);
-            return (0);
-        }
-
-        /* Find command in PATH */
+        /* Find command BEFORE fork */
         cmd_path = find_command(argv[0]);
 
         if (!cmd_path)
         {
             fprintf(stderr, "%s: command not found\n", argv[0]);
-            continue;
+            continue; /* NO fork here */
         }
 
         pid = fork();
+
+        if (pid == -1)
+        {
+            perror("fork");
+            free(cmd_path);
+            continue;
+        }
 
         if (pid == 0)
         {

@@ -7,6 +7,29 @@
 extern char **environ;
 
 /**
+ * _getenv - get environment variable value
+ * @name: variable name
+ * Return: pointer to value or NULL
+ */
+char *_getenv(const char *name)
+{
+    int i = 0;
+    size_t len = strlen(name);
+
+    while (environ[i])
+    {
+        if (strncmp(environ[i], name, len) == 0 &&
+            environ[i][len] == '=')
+        {
+            return (environ[i] + len + 1);
+        }
+        i++;
+    }
+
+    return (NULL);
+}
+
+/**
  * find_command - search command in PATH
  * @cmd: command name
  * Return: full path or NULL
@@ -24,7 +47,7 @@ char *find_command(char *cmd)
         return (NULL);
     }
 
-    path = getenv("PATH");
+    path = _getenv("PATH");
     if (!path)
         return (NULL);
 

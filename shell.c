@@ -39,7 +39,6 @@ char *find_command(char *cmd)
     char *path, *path_copy, *dir;
     char full_path[1024];
 
-    /* If command contains '/', check directly */
     if (strchr(cmd, '/'))
     {
         if (access(cmd, X_OK) == 0)
@@ -100,7 +99,6 @@ int main(void)
 
         nread = getline(&line, &len, stdin);
 
-        /* Handle Ctrl+D */
         if (nread == -1)
         {
             free(line);
@@ -110,7 +108,6 @@ int main(void)
         if (line[nread - 1] == '\n')
             line[nread - 1] = '\0';
 
-        /* Tokenize input */
         i = 0;
         token = strtok(line, " \t");
 
@@ -129,6 +126,19 @@ int main(void)
         {
             free(line);
             exit(last_status);
+        }
+
+        /* ENV built-in */
+        if (strcmp(argv[0], "env") == 0)
+        {
+            int j = 0;
+            while (environ[j])
+            {
+                printf("%s\n", environ[j]);
+                j++;
+            }
+            last_status = 0;
+            continue;
         }
 
         /* Find command BEFORE fork */
@@ -159,7 +169,6 @@ int main(void)
         else
         {
             wait(&status);
-
             if (WIFEXITED(status))
                 last_status = WEXITSTATUS(status);
         }

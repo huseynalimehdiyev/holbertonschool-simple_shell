@@ -16,6 +16,7 @@ char *find_command(char *cmd)
     char *path, *path_copy, *dir;
     char full_path[1024];
 
+    /* If command contains '/', check directly */
     if (strchr(cmd, '/'))
     {
         if (access(cmd, X_OK) == 0)
@@ -52,7 +53,7 @@ char *find_command(char *cmd)
 
 /**
  * main - simple UNIX shell
- * Return: Always 0
+ * Return: exit status
  */
 int main(void)
 {
@@ -62,6 +63,7 @@ int main(void)
     char *argv[100];
     char *token;
     int i, status;
+    int last_status = 0;
     pid_t pid;
     char *cmd_path;
 
@@ -75,17 +77,17 @@ int main(void)
 
         nread = getline(&line, &len, stdin);
 
-        /* Ctrl+D */
+        /* Handle Ctrl+D */
         if (nread == -1)
         {
             free(line);
-            exit(0);
+            exit(last_status);
         }
 
         if (line[nread - 1] == '\n')
             line[nread - 1] = '\0';
 
-        /* Tokenize */
+        /* Tokenize input */
         i = 0;
         token = strtok(line, " \t");
 
@@ -99,11 +101,11 @@ int main(void)
         if (argv[0] == NULL)
             continue;
 
-        /* 🔥 EXIT BUILTIN (NO FORK) */
+        /* EXIT built-in */
         if (strcmp(argv[0], "exit") == 0)
         {
             free(line);
-            return (0);
+            exit(last_status);
         }
 
         /* Find command BEFORE fork */
@@ -112,6 +114,7 @@ int main(void)
         if (!cmd_path)
         {
             fprintf(stderr, "%s: command not found\n", argv[0]);
+            last_status = 127;
             continue;
         }
 
@@ -133,11 +136,14 @@ int main(void)
         else
         {
             wait(&status);
+
+            if (WIFEXITED(status))
+                last_status = WEXITSTATUS(status);
         }
 
         free(cmd_path);
     }
 
     free(line);
-    return (0);
+    return (last_status);
 }

@@ -1,0 +1,53 @@
+.TH hsh 1 "2026-02-19" "version 1.0" "Simple Shell Manual"
+.SH NAME
+hsh \- simple UNIX command line interpreter
+.SH SYNOPSIS
+.B hsh
+.RI [ options ] 
+.SH DESCRIPTION
+The
+.B hsh
+program is a simple shell that reads and executes commands from the user. Commands can be given with absolute path or using the PATH environment variable.
+
+It supports the following built-in command:
+
+.TP
+.B exit
+Exit the shell. Exits with the status of the last executed command.
+
+.SH USAGE
+In interactive mode, the shell displays a prompt ":)" and waits for user input:
+
+.RS
+$ ./hsh
+:) /bin/ls
+file1  file2
+:)
+.RE
+
+Non-interactive mode:
+
+.RS
+$ echo "/bin/ls" | ./hsh
+file1  file2
+.RE
+
+Errors are printed in the format:
+
+.RS
+./hsh: 1: command: not found
+.RE
+
+.SH EXIT STATUS
+.B 0
+if the shell exits normally.
+.B 127
+if a command cannot be found.
+
+.SH ENVIRONMENT
+The shell uses the standard UNIX environment variables, including
+.B PATH
+for locating executables.
+
+.SH AUTHORS
+See the AUTHORS file.

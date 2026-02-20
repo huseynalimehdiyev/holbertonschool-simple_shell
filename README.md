@@ -1,10 +1,7 @@
 # holbertonschool-simple_shell
 #Hello World!
 
----
-
-````markdown
-# 🐚 Simple Shell (hsh)
+# Simple Shell (hsh)
 
 A **C-based UNIX command line interpreter** that mimics the behavior of `/bin/sh`.  
 Supports executing commands, PATH handling, and built-in commands like `exit` and `env`.

@@ -55,7 +55,7 @@ file1  file2
 Clone the repository and compile:
 
 ```bash
-git clone https://github.com/yourusername/holbertonschool-simple_shell.git
+git clone https://github.com/your_username/holbertonschool-simple_shell.git
 cd holbertonschool-simple_shell
 gcc -Wall -Werror -Wextra -pedantic -std=gnu89 shell.c -o hsh
 ```
